@@ -540,6 +540,7 @@ bool Position::legal(Move m) const {
 
   Color us = sideToMove;
   Square from = from_sq(m);
+  Square to = to_sq(m);
 
   assert(color_of(moved_piece(m)) == us);
   assert(piece_on(square<KING>(us)) == make_piece(us, KING));
@@ -566,6 +567,14 @@ bool Position::legal(Move m) const {
   // If the moving piece is a king, check whether the destination
   // square is attacked by the opponent. Castling moves are checked
   // for legality during move generation.
+  if (type_of(m) == CASTLING)
+  {
+      to = relative_square(us, to > from ? SQ_G1 : SQ_C1);
+      Direction step = to > from ? WEST : EAST;
+      for (Square s = to; s != from; s += step)
+          if (attackers_to(s) & pieces(~us))
+              return false;
+  }
   if (type_of(piece_on(from)) == KING)
       return type_of(m) == CASTLING || !(attackers_to(to_sq(m)) & pieces(~us));
 
